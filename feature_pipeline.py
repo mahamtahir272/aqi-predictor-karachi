@@ -121,10 +121,15 @@ def add_derived_features(df, previous_row=None):
         aqi_lag_1 = row["aqi"]
         aqi_rolling_mean_3 = row["aqi"]
 
-    df["aqi_change_rate"] = aqi_change
-    df["pm2_5_change_rate"] = pm25_change
-    df["aqi_lag_1"] = aqi_lag_1
-    df["aqi_rolling_mean_3"] = aqi_rolling_mean_3
+    # Explicitly force these to float64 columns (not just scalar float()) so the
+    # dtype is guaranteed regardless of what numpy/pandas infers from the scalar.
+    # The Hopsworks feature group schema was locked to 'double' by the original
+    # Colab .diff()/.shift() calls, which naturally produce floats (NaN on the
+    # first row forces float dtype) — this reproduces that exactly.
+    df["aqi_change_rate"] = pd.Series([aqi_change], dtype="float64")
+    df["pm2_5_change_rate"] = pd.Series([pm25_change], dtype="float64")
+    df["aqi_lag_1"] = pd.Series([aqi_lag_1], dtype="float64")
+    df["aqi_rolling_mean_3"] = pd.Series([aqi_rolling_mean_3], dtype="float64")
     return df
 
 
@@ -146,6 +151,7 @@ def align_schema_for_hopsworks(df):
 # Main
 # ---------------------------------------------------------------------
 def main():
+    print("SCRIPT_VERSION: float64-fix-v2")
     print(f"[{datetime.now(timezone.utc)}] Starting feature pipeline run...")
 
     project = hopsworks.login(
