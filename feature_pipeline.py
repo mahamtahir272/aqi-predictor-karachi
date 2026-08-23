@@ -121,12 +121,11 @@ def add_derived_features(df, previous_row=None):
         aqi_lag_1 = row["aqi"]
         aqi_rolling_mean_3 = row["aqi"]
 
-    df["aqi_change_rate"] = aqi_change
-    df["pm2_5_change_rate"] = pm25_change
-    df["aqi_lag_1"] = aqi_lag_1
-    df["aqi_rolling_mean_3"] = aqi_rolling_mean_3
+    df["aqi_change_rate"] = float(aqi_change)
+    df["pm2_5_change_rate"] = float(pm25_change)
+    df["aqi_lag_1"] = float(aqi_lag_1)
+    df["aqi_rolling_mean_3"] = float(aqi_rolling_mean_3)
     return df
-
 
 def align_schema_for_hopsworks(df):
     """Matches the feature group schema locked in by the very first insert."""
