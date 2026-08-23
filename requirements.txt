@@ -1,0 +1,7 @@
+hopsworks[python]
+confluent-kafka
+requests
+pandas
+numpy
+scikit-learn
+joblib
