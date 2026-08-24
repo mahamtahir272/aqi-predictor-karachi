@@ -65,12 +65,25 @@ def load_model():
     return model, feature_cols, model_meta.version
 
 
-@st.cache_data(ttl=1800, show_spinner="Fetching latest feature data...")
-def load_features():
+@st.cache_data(ttl=3300, show_spinner="Fetching feature data...")
+def load_features(days_back=None):
+    """
+    Reads from the Feature Store. If days_back is set, filters server-side
+    to only the last N days (much faster than transferring the full history).
+    If None, reads everything (slow — only use when genuinely needed, e.g.
+    the "All data" view).
+    """
     project = get_project()
     fs = project.get_feature_store()
     aqi_fg = fs.get_feature_group(name="aqi_features", version=1)
-    df = aqi_fg.read()
+
+    if days_back is not None:
+        cutoff_unix = int((pd.Timestamp.utcnow() - pd.Timedelta(days=days_back)).timestamp())
+        query = aqi_fg.filter(aqi_fg.unix_time >= cutoff_unix)
+        df = query.read()
+    else:
+        df = aqi_fg.read()
+
     df = df.sort_values("timestamp").reset_index(drop=True)
     return df
 
@@ -98,15 +111,18 @@ def render_alert(aqi_value, label):
         st.success(f"Forecasted AQI is **{aqi_value:.0f} ({label})** — no alert needed.")
 
 
-def load_everything_safely():
+def load_everything_safely(days_back=None):
     """
     Convenience wrapper used by dashboard pages. Returns (model, feature_cols,
     model_version, df, error) — error is None on success, or a string on failure,
     so pages can render a friendly message instead of crashing.
+
+    days_back limits how much feature history is pulled (see load_features) —
+    pass a small number for pages that only need recent data, to keep loads fast.
     """
     try:
         model, feature_cols, model_version = load_model()
-        df = load_features()
+        df = load_features(days_back=days_back)
         return model, feature_cols, model_version, df, None
     except Exception as e:
         return None, None, None, None, str(e)

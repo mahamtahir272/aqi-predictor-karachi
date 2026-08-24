@@ -18,7 +18,7 @@ st.set_page_config(page_title="Live Forecast — Pearls AQI Predictor", page_ico
 st.title("📊 Live Forecast")
 st.caption("Current AQI and 3-day-ahead prediction for Karachi.")
 
-model, feature_cols, model_version, df, error = load_everything_safely()
+model, feature_cols, model_version, df, error = load_everything_safely(days_back=2)
 
 if error:
     st.error(f"Could not load model or data from Hopsworks: {error}")

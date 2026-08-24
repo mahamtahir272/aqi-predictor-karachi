@@ -15,7 +15,16 @@ st.set_page_config(page_title="Trends & Explainability — Pearls AQI Predictor"
 st.title("📈 Trends & Explainability")
 st.caption("Historical AQI patterns and what's driving the current forecast.")
 
-model, feature_cols, model_version, df, error = load_everything_safely()
+date_range = st.selectbox(
+    "Time range", ["Last 7 days", "Last 30 days", "Last 90 days", "All data"], index=1
+)
+range_days_map = {"Last 7 days": 7, "Last 30 days": 30, "Last 90 days": 90, "All data": None}
+days_back = range_days_map[date_range]
+
+if days_back is None:
+    st.info("Loading full history — this can take a little longer than the other ranges.")
+
+model, feature_cols, model_version, df, error = load_everything_safely(days_back=days_back)
 
 if error:
     st.error(f"Could not load model or data from Hopsworks: {error}")
@@ -29,15 +38,7 @@ latest_row, forecast_aqi = make_forecast(model, feature_cols, df)
 # ---------------------------------------------------------------------
 st.header("Historical AQI Trend")
 
-date_range = st.selectbox(
-    "Time range", ["Last 7 days", "Last 30 days", "Last 90 days", "All data"], index=1
-)
-range_map = {"Last 7 days": 7 * 24, "Last 30 days": 30 * 24, "Last 90 days": 90 * 24}
-if date_range == "All data":
-    trend_df = df[["timestamp", "aqi"]].copy()
-else:
-    trend_df = df[["timestamp", "aqi"]].tail(range_map[date_range]).copy()
-
+trend_df = df[["timestamp", "aqi"]].copy()
 st.line_chart(trend_df.set_index("timestamp"))
 
 col1, col2, col3 = st.columns(3)
