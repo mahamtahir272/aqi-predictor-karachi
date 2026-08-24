@@ -5,4 +5,4 @@ scikit-learn
 joblib
 shap
 matplotlib
-hopsworks
+hopsworks>=4.0
