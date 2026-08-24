@@ -1,7 +1,8 @@
-hopsworks[python]
-confluent-kafka
-requests
+streamlit
 pandas
 numpy
 scikit-learn
 joblib
+shap
+matplotlib
+hopsworks
